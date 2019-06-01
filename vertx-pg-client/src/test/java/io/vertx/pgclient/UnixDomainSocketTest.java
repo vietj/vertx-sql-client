@@ -65,6 +65,7 @@ public class UnixDomainSocketTest {
     }
   }
 
+/*
   @Test
   public void uriTest(TestContext context) {
     assumeTrue(options.isUsingDomainSocket());
@@ -72,14 +73,17 @@ public class UnixDomainSocketTest {
     client = PgPool.pool(uri);
     client.getConnection(context.asyncAssertSuccess(pgConnection -> pgConnection.close()));
   }
+*/
 
   @Test
   public void simpleConnect(TestContext context) {
+    System.out.println("START TEST");
     assumeTrue(options.isUsingDomainSocket());
     client = PgPool.pool(new PgConnectOptions(options), new PoolOptions());
     client.getConnection(context.asyncAssertSuccess(pgConnection -> pgConnection.close()));
   }
 
+/*
   @Test
   public void connectWithVertxInstance(TestContext context) {
     assumeTrue(options.isUsingDomainSocket());
@@ -96,7 +100,9 @@ public class UnixDomainSocketTest {
       vertx.close();
     }
   }
+*/
 
+/*
   @Test
   public void testIgnoreSslMode(TestContext context) {
     assumeTrue(options.isUsingDomainSocket());
@@ -106,4 +112,5 @@ public class UnixDomainSocketTest {
       pgConnection.close();
     }));
   }
+*/
 }
