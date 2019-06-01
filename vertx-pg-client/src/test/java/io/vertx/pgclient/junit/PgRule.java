@@ -119,16 +119,26 @@ public class PgRule extends ExternalResource {
     options.setUser("postgres");
     options.setPassword("postgres");
     options.setDatabase("postgres");
+    System.out.println("STARTED PG");
+    System.out.println("STARTED PG");
+    System.out.println("STARTED PG");
     return options;
   }
 
   public synchronized static void stopPg() throws Exception {
     if (postgres != null) {
       try {
+        System.out.println("stopping PG");
+        System.out.println("stopping PG");
+        System.out.println("stopping PG");
         postgres.stop();
       } finally {
         postgres = null;
       }
+    } else {
+      System.out.println("COULD NOT STOP PG");
+      System.out.println("COULD NOT STOP PG");
+      System.out.println("COULD NOT STOP PG");
     }
   }
 
