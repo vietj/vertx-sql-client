@@ -20,7 +20,7 @@ package io.vertx.pgclient.impl.codec;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.DecoderException;
-import io.vertx.core.spi.JsonFactory;
+import io.vertx.core.spi.json.JsonCodec;
 import io.vertx.sqlclient.Tuple;
 import io.vertx.sqlclient.data.Numeric;
 import io.vertx.pgclient.data.*;
@@ -1251,7 +1251,7 @@ class DataTypeCodec {
     if (value == Tuple.JSON_NULL) {
       s = "null";
     } else {
-      s = JsonFactory.factory.toString(value);
+      s = JsonCodec.INSTANCE.toString(value);
     }
     buff.writeCharSequence(s, StandardCharsets.UTF_8);
   }
@@ -1273,7 +1273,7 @@ class DataTypeCodec {
     } else if (s.charAt(pos) == '[') {
       value = new JsonArray(s);
     } else {
-      Object o = JsonFactory.factory.fromString(s, Object.class);
+      Object o = JsonCodec.INSTANCE.fromString(s, Object.class);
       if (o == null) {
         return Tuple.JSON_NULL;
       }
