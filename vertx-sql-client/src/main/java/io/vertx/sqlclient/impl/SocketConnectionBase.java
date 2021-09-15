@@ -177,7 +177,13 @@ public abstract class SocketConnectionBase implements Connection {
     }
     cmd.handler = handler;
     if (status == Status.CONNECTED) {
-      pending.add(cmd);
+      if (cmd instanceof CompositeCommand) {
+        CompositeCommand composite = (CompositeCommand) cmd;
+        List<CommandBase<?>> commands = composite.commands();
+        pending.addAll(commands);
+      } else {
+        pending.add(cmd);
+      }
       checkPending();
     } else {
       cmd.fail(new NoStackTraceThrowable("Connection is not active now, current status: " + status));

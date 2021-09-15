@@ -25,9 +25,14 @@ import io.vertx.sqlclient.impl.command.CommandBase;
 import io.vertx.sqlclient.Transaction;
 
 import io.vertx.core.*;
+import io.vertx.sqlclient.impl.command.CommandScheduler;
+import io.vertx.sqlclient.impl.command.CompositeCommand;
 import io.vertx.sqlclient.impl.tracing.QueryTracer;
 import io.vertx.sqlclient.spi.DatabaseMetadata;
 import io.vertx.sqlclient.spi.ConnectionFactory;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -36,6 +41,8 @@ public class SqlConnectionImpl<C extends SqlConnection> extends SqlConnectionBas
 
   private volatile Handler<Throwable> exceptionHandler;
   private volatile Handler<Void> closeHandler;
+  private boolean autoFlush = true;
+  private CompositeCommand pending;
   protected TransactionImpl tx;
 
   public SqlConnectionImpl(ContextInternal context, ConnectionFactory factory, Connection conn, QueryTracer tracer, ClientMetrics metrics) {
@@ -72,8 +79,27 @@ public class SqlConnectionImpl<C extends SqlConnection> extends SqlConnectionBas
       Promise<R> promise = context.promise();
       tx.schedule(cmd, promise);
       return promise.future();
-    } else {
+    } else if (autoFlush) {
       return conn.schedule(context, cmd);
+    } else {
+      if (pending == null) {
+        pending = new CompositeCommand();
+      }
+      return pending.add(context, cmd);
+    }
+  }
+
+  private static class Bilto<R> {
+    final ContextInternal context;
+    final CommandBase<R> cmd;
+    final Promise<R> promise;
+    public Bilto(ContextInternal context, CommandBase<R> cmd, Promise<R> promise) {
+      this.context = context;
+      this.cmd = cmd;
+      this.promise = promise;
+    }
+    void schedule(CommandScheduler scheduler) {
+      scheduler.schedule(context, cmd).onComplete(promise);
     }
   }
 
@@ -107,6 +133,20 @@ public class SqlConnectionImpl<C extends SqlConnection> extends SqlConnectionBas
   public C exceptionHandler(Handler<Throwable> handler) {
     exceptionHandler = handler;
     return (C) this;
+  }
+
+  @Override
+  public void autoFlush(boolean flush) {
+    autoFlush = flush;
+  }
+
+  @Override
+  public void flush() {
+    CompositeCommand composite = pending;
+    if (composite != null) {
+      pending = null;
+      conn.schedule(context, composite);
+    }
   }
 
   @Override

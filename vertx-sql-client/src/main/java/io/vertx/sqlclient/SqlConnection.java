@@ -89,10 +89,14 @@ public interface SqlConnection extends SqlClient {
    * @param handler the completion handler
    */
   void close(Handler<AsyncResult<Void>> handler);
-  
+
   /**
    * @return The static metadata about the backend database server for this connection
    */
   DatabaseMetadata databaseMetadata();
+
+  void autoFlush(boolean flush);
+
+  void flush();
 
 }
