@@ -40,6 +40,7 @@ import io.vertx.sqlclient.impl.command.*;
 
 import java.util.ArrayDeque;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 
 /**
@@ -181,6 +182,7 @@ public abstract class SocketConnectionBase implements Connection {
         CompositeCommand composite = (CompositeCommand) cmd;
         List<CommandBase<?>> commands = composite.commands();
         pending.addAll(commands);
+        composite.handler.handle(Future.succeededFuture());
       } else {
         pending.add(cmd);
       }
@@ -236,11 +238,27 @@ public abstract class SocketConnectionBase implements Connection {
         ctx.write(cmd, ctx.voidPromise());
       }
       if (written > 0) {
+        flushCount.incrementAndGet();
         ctx.flush();
       }
     } finally {
       executing = false;
     }
+  }
+
+  private static final AtomicInteger flushCount = new AtomicInteger();
+
+  static {
+//    new Thread(() -> {
+//      while (true) {
+//        System.out.println("FLUSH COUNT : " + flushCount.get());
+//        try {
+//          Thread.sleep(1000);
+//        } catch (InterruptedException e) {
+//          return;
+//        }
+//      }
+//    }).start();
   }
 
   private PrepareStatementCommand prepareCommand(ExtendedQueryCommand<?> queryCmd, boolean cache, boolean sendParameterTypes) {

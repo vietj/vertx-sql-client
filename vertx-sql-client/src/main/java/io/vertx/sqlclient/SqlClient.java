@@ -57,5 +57,8 @@ public interface SqlClient {
    * Like {@link #close(Handler)} but returns a {@code Future} of the asynchronous result
    */
   Future<Void> close();
-  
+
+  void group(Handler<SqlClient> handler);
+
+
 }
